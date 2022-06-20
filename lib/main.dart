@@ -1,11 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
-import 'package:http/http.dart';
+import 'package:http/http.dart' as http;
 import 'dart:convert';
 
 void main() {
   runApp(const MaterialApp(
     title: "Weather App",
+    debugShowCheckedModeBanner: false,
     home: Home(),
   ));
 }
@@ -18,6 +19,31 @@ class Home extends StatefulWidget {
 }
 
 class _HomeState extends State<Home> {
+  var temp;
+  var description;
+  var windSpeed;
+  var humidity;
+  var currently;
+
+  Future getWeather() async {
+    http.Response response = await http.get(Uri.parse(
+        "https://api.openweathermap.org/data/2.5/weather?q=Boston&units=imperial&appid=5669da9f7124121c946468a941cc6ab0"));
+    var results = jsonDecode(response.body);
+    setState(() {
+      temp = results['main']['temp'];
+      description = results['weather'][0]['description'];
+      currently = results['weather'][0]['main'];
+      humidity = results['main']['humidity'];
+      windSpeed = results['wind']['speed'];
+    });
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    getWeather();
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -30,8 +56,8 @@ class _HomeState extends State<Home> {
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             crossAxisAlignment: CrossAxisAlignment.center,
-            children: const [
-              Padding(
+            children: [
+              const Padding(
                 padding: EdgeInsets.only(bottom: 10.0),
                 child: Text("Currently in Boston",
                     style: TextStyle(
@@ -40,16 +66,16 @@ class _HomeState extends State<Home> {
                         fontWeight: FontWeight.w600)),
               ),
               Text(
-                "52\u00B0",
-                style: TextStyle(
+                temp != null ? "$temp\u00B0" : "Loading",
+                style: const TextStyle(
                     fontSize: 40.0,
                     color: Colors.white,
                     fontWeight: FontWeight.w600),
               ),
               Padding(
-                padding: EdgeInsets.only(top: 10.0),
-                child: Text("Rain",
-                    style: TextStyle(
+                padding: const EdgeInsets.only(top: 10.0),
+                child: Text(currently != null ? "$currently" : "Loading",
+                    style: const TextStyle(
                         color: Colors.white,
                         fontSize: 14.0,
                         fontWeight: FontWeight.w600)),
@@ -59,28 +85,29 @@ class _HomeState extends State<Home> {
         ),
         Expanded(
             child: Padding(
-          padding: EdgeInsets.all(20.0),
+          padding: const EdgeInsets.all(20.0),
           child: ListView(
-            children: const [
+            children: [
               ListTile(
-                leading: FaIcon(FontAwesomeIcons.temperatureHalf),
-                title: Text("Temperature"),
-                trailing: Text("52\u00B0"),
+                leading: const FaIcon(FontAwesomeIcons.temperatureHalf),
+                title: const Text("Temperature"),
+                trailing: Text(temp != null ? "$temp\u00B0" : "Loading"),
               ),
               ListTile(
-                leading: FaIcon(FontAwesomeIcons.cloud),
-                title: Text("Weather"),
-                trailing: Text("Weather"),
+                leading: const FaIcon(FontAwesomeIcons.cloud),
+                title: const Text("Weather"),
+                trailing:
+                    Text(description != null ? "$description" : "Loading"),
               ),
               ListTile(
-                leading: FaIcon(FontAwesomeIcons.sun),
-                title: Text("Humidity"),
-                trailing: Text("12"),
+                leading: const FaIcon(FontAwesomeIcons.sun),
+                title: const Text("Humidity"),
+                trailing: Text(humidity != null ? "$humidity" : "Loading"),
               ),
               ListTile(
-                leading: FaIcon(FontAwesomeIcons.wind),
-                title: Text("Wind Speed"),
-                trailing: Text("12"),
+                leading: const FaIcon(FontAwesomeIcons.wind),
+                title: const Text("Wind Speed"),
+                trailing: Text(windSpeed != null ? "$windSpeed" : "Loading"),
               ),
             ],
           ),
